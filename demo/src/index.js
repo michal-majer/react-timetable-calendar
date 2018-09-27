@@ -7,7 +7,9 @@ class Demo extends Component {
   render() {
     return <div>
       <h1>react-timetable-calendar Demo</h1>
-      <Example/>
+      <Example
+        displayDays={6}
+      />
     </div>
   }
 }
