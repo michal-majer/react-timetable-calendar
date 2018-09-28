@@ -22,7 +22,16 @@ const CellTime = styled.div`
   padding: 0 5%;
 `;
 
-const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities}) => {
+const onDragOver = (ev) => {
+  ev.preventDefault();
+}
+
+const onDrop = (ev, cat) => {
+  let activity = ev.dataTransfer.getData("activity");
+  console.log(activity);
+}
+
+const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities, resizeActivity}) => {
   let cells = [];
   let spanCordinates = [];
   const start = startOfWeek(selectedDate, {weekStartsOn});
@@ -75,13 +84,15 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
                 height: (activity.span * 60) - offset,
                 marginTop: offset
               };
-              console.log(offset, activity.span);
+              // console.log(offset, activity.span);
           } else {
               offset = parseInt(splitedEndAtTime[1], 10);
               activity.css = {
                 height: (activity.span * 60) + offset,
                 marginTop: 0
               };
+              activity.span++;
+              activity.endX++;
           }
 
           activity.css.height--;
@@ -116,14 +127,18 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
 
           cells.push(
             <CellWeek key={`activity${index}${i}`} rowSpan={span}>
-              { checkActivity.map((activity, index) => <ActivityCard key={index} activity={activity} />)}
+              { checkActivity.map((activity, index) => <ActivityCard key={index} activity={activity} resizeActivity={resizeActivity} />)}
             </CellWeek>
           );
           span = 0;
         } else {
           const checkRowSpan = spanCordinates.filter(obj => obj.x === index && obj.y === i );
           if (checkRowSpan.length !== 1) {
-            cells.push(<CellWeek key={`activity${index}${i}`} />)
+            cells.push(
+              <CellWeek key={`activity${index}${i}`}
+                onDrop={(e)=>onDrop(e, "complete")}
+                onDragOver={(e) => onDragOver(e)} />
+            )
           }
         }
     }

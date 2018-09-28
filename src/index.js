@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from 'date-fns';
+import { isEqual } from 'lodash';
 import styled from 'styled-components';
 
 import AddButton from './element/AddButton';
@@ -8,10 +9,10 @@ import Body from './element/Body/Body';
 import DisplayModeButtons from './element/DisplayModeButtons';
 import Styles from './index.css';
 
+
 const Calendar = styled.div`
   font-family: 'Lato', sans-serif;
 `;
-
 
 export default class extends Component {
   activities = [
@@ -166,6 +167,36 @@ export default class extends Component {
     this.setState({selectedDate: nextSelectedDate});
   }
 
+  resizeActivity = (activity, newHeight) => {
+     const newActivities = [...this.state.activities];
+     const index = newActivities.findIndex(obj => isEqual(obj,activity));
+
+     if(index > -1) {
+       const diffHeight = newActivities[index].css.height - newHeight;
+       const restOfHeight = diffHeight % 60;
+       const oldEndAtTime = newActivities[index].endAtTime.split(':');
+       let newMinutes = parseInt(oldEndAtTime[1], 10) - restOfHeight;
+       let fullHours = parseInt(newMinutes / 60);
+
+       if(newMinutes < 0){
+         fullHours++;
+         fullHours *=-1;
+       }
+
+       if(newMinutes === 60 || newMinutes === 0) newMinutes = '00';
+       if(newMinutes === 5) newMinutes = '05';
+       if(newMinutes === -5) newMinutes = '55';
+
+       const newHours = parseInt(oldEndAtTime[0], 10) + fullHours;
+
+       const css = {...newActivities[index].css, height: newHeight};
+       let newActivity = {...newActivities[index], endAtTime: `${newHours}:${newMinutes}`, css};
+       newActivities[index] = {...newActivity};
+       this.setState({ activities: newActivities });
+     }
+
+  }
+
   render() {
     return(
     <Calendar>
@@ -187,7 +218,7 @@ export default class extends Component {
 
       <Body
         {...this.state}
-        activities={this.state.activities}
+        resizeActivity={this.resizeActivity}
       />
 
 

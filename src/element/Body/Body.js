@@ -14,7 +14,7 @@ const Body = (props) => {
     case 'day':
       break;
     case 'week':
-    body = <Week {...props} />;
+    body = <Week {...props} resizeActivity={props.resizeActivity} />;
       break;
     case 'month':
       break;
