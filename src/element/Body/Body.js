@@ -6,6 +6,7 @@ const StyledBody = styled.div`
   display: grid;
   grid-template-columns: repeat(${props => props.columns}, 1fr);
   grid-template-rows: repeat(${props => props.rows}, 60px);
+  grid-column-gap: 1%;
 `;
 
 const Body = (props) => {

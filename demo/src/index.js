@@ -27,12 +27,12 @@ const activities = [
     },
     {
       name: 'Jazz dla dzieci',
-      startAtTime: '11:30',
-      endAtTime: '13:00',
+      startAtTime: '13:00',
+      endAtTime: '14:00',
       description: 'Michał Majer',
-      date: new Date(2018, 9, 4),
+      date: new Date(2018, 9, 1),
       category: 'Początkujący',
-      localization: 'Leszno',
+      localization: 'Poznań',
       person: 'Kinga Majer'
     },
     {
@@ -42,7 +42,7 @@ const activities = [
       description: 'Start: 26.09',
       date: new Date(2018, 9, 5),
       category: 'Początkujący',
-      localization: 'Leszno',
+      localization: 'Poznań',
       person: 'Paulina Majer'
     },
     {
@@ -63,7 +63,7 @@ class Demo extends Component {
       <h1>react-timetable-calendar Demo</h1>
       <Example
         activities={activities}
-        displayDays={6}
+        displayDays={5}
         mode={'display'}
         subHeader={'localization'}
       />

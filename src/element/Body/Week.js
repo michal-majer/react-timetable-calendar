@@ -4,14 +4,15 @@ import styled from 'styled-components';
 import ActivityCard from '../ActivityCard';
 
 const CellWeek = styled.div`
-  border-top: 1px dashed rgb(220,220,220, 0.8);
-  padding: 0 2%;
+  // border-top: 1px dashed rgb(220,220,220, 0.8);
   grid-row: span ${props => props.rowSpan || 1};
   grid-column: span ${props => props.gridColumn || 1};
-  margin-top: 1px;
+  // margin-top: 1px;
   position: relative;
   transition: 0.3s ease;
-  z-index: 0;
+  z-index: 1;
+  border-left: 1px dashed rgb(220,220,220, 0.8);
+  border-right: 1px dashed rgb(220,220,220, 0.8);
 `;
 
 const CellTime = styled.div`
@@ -22,10 +23,12 @@ const CellTime = styled.div`
   margin-top: -7.5px;
   padding: 0 5%;
   grid-column: span ${props => props.gridColumn || 1};
+  z-index: 1;
+
 `;
 
 
-const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities, resizeActivity, mode, selectedCategory, selectedCategories, selectedLocalization, subHeader, selectedLocalizations, selectedPersones}) => {
+const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities, resizeActivity, mode, selectedCategory, selectedCategories, selectedLocalization, subHeader, selectedLocalizations, selectedPersones, uniqueCategories}) => {
   let cells = [];
   let spanCordinates = [];
   const start = startOfWeek(selectedDate, {weekStartsOn});
@@ -135,7 +138,7 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
 
           cells.push(
             <CellWeek key={`activity${index}${i}`} rowSpan={span}>
-              { checkActivity.map((activity, index) => <ActivityCard key={index} mode={mode} activity={activity} resizeActivity={resizeActivity} />)}
+              { checkActivity.map((activity, index) => <ActivityCard uniqueCategories={uniqueCategories} key={index} mode={mode} activity={activity} resizeActivity={resizeActivity} />)}
             </CellWeek>
           );
           span = 0;
