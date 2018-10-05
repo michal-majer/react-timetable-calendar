@@ -1,16 +1,24 @@
 import React, { Component } from 'react';
 import { Resizable } from 'react-resizable';
+import styled, { ThemeProvider } from 'styled-components';
 
-import styled from 'styled-components';
+const purpleTheme = {
+  color: '#FFF',
+  backgroundColor: '#705BCF'
+}
+
+const tealTheme = {
+  color: '#0D9DAD',
+  backgroundColor: '#D9F9F5'
+}
 
 const Card = styled.div`
   align-items: center;
-  background-color: #705BCF;
-  border-radius: 3px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-  color: #FFF;
-  cursor: move; /* fallback if grab cursor is unsupported */
-  cursor: grab;
+  background-color: #EDEAFF;
+  border-left: 2px solid #624DC2;
+  // border-radius: 5px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  color: #624DC2;
   display: flex;
   position: absolute;
   width: 95%;
@@ -21,10 +29,6 @@ const Card = styled.div`
   margin-top: ${props => `${props.marginTop}px` || 1};
   justify-content: center;
   z-index: 2;
-
-  :active {
-      cursor: grabbing;
-  }
 `;
 
 const Header = styled.h1`
@@ -38,6 +42,10 @@ const Description = styled.p`
   font-size: 12px;
   margin: 0;
 `;
+
+const DISPLAY_MODE = 'display';
+const EDIT_MODE = 'edit';
+
 
 class ActivityCard extends Component {
   constructor(props) {
@@ -53,22 +61,31 @@ class ActivityCard extends Component {
     this.props.resizeActivity(this.props.activity, size.height);
   };
 
-  onDragStart = (ev, activity) => {
-    ev.dataTransfer.setData("activity", activity);
-  }
+  cardInEditMode = () => (
+    <Resizable height={this.state.height} width={100} axis="y" onResize={this.onResize} draggableOpts={{grid: [5, 5]}}>
+      <Card width={this.state.height} marginTop={this.state.marginTop} >
+        <Header>{this.props.activity.name}</Header>
+        <Description>{`${this.props.activity.startAtTime} - ${this.props.activity.endAtTime} | ${this.props.activity.person}`}</Description>
+      </Card>
+    </Resizable>
+  );
+
+  cardInDisplayMode = () => (
+      <Card width={this.state.height} marginTop={this.state.marginTop} >
+        <Header>{this.props.activity.name}</Header>
+        <Description>{`${this.props.activity.startAtTime} - ${this.props.activity.endAtTime} | ${this.props.activity.person}`}</Description>
+      </Card>
+  )
 
   render() {
-    return (
-      <Resizable height={this.state.height} axis="y" onResize={this.onResize} draggableOpts={{grid: [5, 5]}}
-        draggable
-        onDragStart={(e) => this.onDragStart(e, this.props.activity)}
-      >
-        <Card width={this.state.height} marginTop={this.state.marginTop} >
-          <Header>{this.props.activity.name}</Header>
-          <Description>{`${this.props.activity.startAtTime} - ${this.props.activity.endAtTime} | ${this.props.activity.description}`}</Description>
-        </Card>
-      </Resizable>
-    )
+    switch(this.props.mode) {
+      case DISPLAY_MODE:
+        return this.cardInDisplayMode();
+      case EDIT_MODE:
+        return this.cardInEditMode();
+      default:
+        break;
+      }
   }
 }
 

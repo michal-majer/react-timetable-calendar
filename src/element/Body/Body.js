@@ -10,6 +10,7 @@ const StyledBody = styled.div`
 
 const Body = (props) => {
   let body;
+  let { numberOfColumns, subHeader, selectedLocalizations } = props;
   switch(props.displayMode) {
     case 'day':
       break;
@@ -20,8 +21,12 @@ const Body = (props) => {
       break;
   }
 
+  if(subHeader) {
+    numberOfColumns *= selectedLocalizations.length;
+  }
+
   return (
-    <StyledBody columns={props.numberOfColumns} rows={props.numberOfRows}>
+    <StyledBody columns={numberOfColumns} rows={props.numberOfRows}>
         {body}
     </StyledBody>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { format, parse, addDays, startOfWeek, endOfWeek, lastDayOfWeek, startOfMonth, endOfMonth, lastDayOfMonth, eachDayOfInterval, isSameDay, isSameMonth } from 'date-fns';
 import styled from 'styled-components';
+// import { pl } from 'date-fns/esm/locale';
 
 const Container = styled.div`
   display: grid;
@@ -58,7 +59,25 @@ const generateHeader = ({displayMode, selectedDate, weekStartsOn}) => {
   }
 };
 
-const Header = ({displayMode, selectedDate, weekStartsOn, displayDays, numberOfColumns}) => {
+const Header = ({displayMode, selectedDate, weekStartsOn, displayDays, numberOfColumns, subHeader, selectedLocalizations, uniqueLocalization}) => {
+  let renderSubHeader = [];
+
+  if(subHeader === 'localization') {
+    for (let j = 0; j < selectedLocalizations.length; j++ ) {
+      renderSubHeader.push(
+        <Cell key={`empty${j}`}></Cell>
+      )
+    }
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < selectedLocalizations.length; j++ ) {
+        renderSubHeader.push(
+          <Cell key={`${i}${j}`}>
+            <Description>{selectedLocalizations[j]}</Description>
+          </Cell>
+        )
+      }
+    }
+  }
 
   let renderedHeader = generateHeader({displayMode, selectedDate, weekStartsOn});
   renderedHeader = renderedHeader.slice(0, displayDays);
@@ -73,6 +92,9 @@ const Header = ({displayMode, selectedDate, weekStartsOn, displayDays, numberOfC
       </Container>
       <Container columns={numberOfColumns}>
        {renderedHeader}
+      </Container>
+      <Container columns={numberOfColumns * selectedLocalizations.length}>
+       {renderSubHeader}
       </Container>
     </div>
 

@@ -38,6 +38,7 @@
   "dependencies": {
     "babel-plugin-inferno": "^5.0.1",
     "lodash.isequal": "^4.5.0",
+    "lodash.uniqby": "^4.7.0",
     "react-resizable": "^1.7.5",
     "styled-components": "^3.4.9"
   }

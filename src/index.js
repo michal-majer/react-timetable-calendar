@@ -1,87 +1,62 @@
 import React, {Component} from 'react';
 import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from 'date-fns';
-import { isEqual } from 'lodash';
+import { isEqual, uniqBy } from 'lodash';
 import styled from 'styled-components';
 
 import AddButton from './element/AddButton';
+import Button from './element/Button';
+import Tag from './element/Tag';
 import Header from './element/Header';
 import Body from './element/Body/Body';
 import DisplayModeButtons from './element/DisplayModeButtons';
 import Styles from './index.css';
-
+//
+// import constants from './constants';
 
 const Calendar = styled.div`
   font-family: 'Lato', sans-serif;
+  padding: 10px;
 `;
 
+const DISPLAY_MODE = 'display';
+const EDIT_MODE = 'edit';
+const WEEK = 'week';
+const TAG_COLORS = ['#f50', '#2db7f5', '#87d068', '#108ee9'];
+
+
+// const constants = {
+//   DISPLAY_MODE: 'display',
+//   EDIT_MODE: 'edit'
+// };
+
 export default class extends Component {
-  activities = [
-      {
-        name: 'Jazz dla dzieci',
-        startAtTime: '8:10',
-        endAtTime: '10:00',
-        description: 'Michał Majer',
-        date: new Date(2018, 8, 24)
-      },
-      {
-        name: 'Jazz dla dzieci',
-        startAtTime: '10:00',
-        endAtTime: '10:45',
-        description: 'Michał Majer',
-        date: new Date(2018, 8, 25)
-      },
-      {
-        name: 'Jazz dla dzieci',
-        startAtTime: '11:30',
-        endAtTime: '13:30',
-        description: 'Michał Majer',
-        date: new Date(2018, 8, 26)
-      },
-      {
-        name: 'Modern dla dzieci',
-        startAtTime: '13:05',
-        endAtTime: '16:55',
-        description: 'Start: 26.09',
-        date: new Date(2018, 8, 25)
-      },
-      {
-        name: 'Modern dla dzieci',
-        startAtTime: '11:30',
-        endAtTime: '13:00',
-        description: 'Start: 26.09',
-        date: new Date(2018, 8, 25)
-      },
-      {
-        name: 'Modern dla dzieci',
-        startAtTime: '13:00',
-        endAtTime: '14:15',
-        description: 'Start: 26.09',
-        date: new Date(2018, 8, 28)
-      },
-      {
-        name: 'Modern dla dzieci',
-        startAtTime: '16:15',
-        endAtTime: '20:00',
-        date: new Date(2018, 8, 27)
-      }
-    ];
 
   constructor(props) {
     super(props);
 
     this.state = {
+        mode: props.mode || DISPLAY_MODE,
         currentMonth: new Date(),
         selectedDate: new Date(),
         currentDate: new Date(),
-        displayMode: 'week', //Set default to week
+        displayMode: props.displayMode || WEEK, //Set default to week
         weekStartsOn: 1, // Start with monday
         displayDays: props.displayDays || 7, //inWeek
         startAtHour: 8,
-        endAtHour: 20,
+        endAtHour: 17,
         numberOfRows: 0,
         numberOfColumns: 0,
         timeArray: [],
-        activities: this.activities
+        subHeader: this.props.subHeader || null,
+        activities: this.props.activities || [],
+        selectedCategory: null,
+        selectedCategories: uniqBy(this.props.activities, 'category').map( activity => activity.category ) || [],
+        selectedLocalization: null,
+        selectedLocalizations: uniqBy(this.props.activities, 'localization').map( activity => activity.localization ) || [],
+        selectedPersones: uniqBy(this.props.activities, 'person').map( activity => activity.person ) || [],
+        uniqueCategories: uniqBy(this.props.activities, 'category').map( activity => activity.category ),
+        uniqueLocalization: uniqBy(this.props.activities, 'localization').map( activity => activity.localization ),
+        uniquePersones: uniqBy(this.props.activities, 'person').map( activity => activity.person )
       };
   }
 
@@ -194,35 +169,129 @@ export default class extends Component {
        newActivities[index] = {...newActivity};
        this.setState({ activities: newActivities });
      }
-
   }
 
-  render() {
-    return(
-    <Calendar>
-
+  editModeHeader = () => (
+    <div>
       <DisplayModeButtons
         currentDisplayMode={this.state.displayMode}
         switchDisplayMode={this.switchDisplayMode}
         next={this.next}
         prev={this.prev}
       />
+      <AddButton addActivity={this.addActivity} />
+    </div>
+  )
 
-      <AddButton
-        addActivity={this.addActivity}
-      />
+  displayModeElements = () => {
+    switch(this.state.mode) {
+      case DISPLAY_MODE:
+        break;
+      case EDIT_MODE:
+        return this.editModeHeader();
+      default:
+        break;
+    }
+  }
 
-      <Header
-        {...this.state}
-      />
+  tooggleFilter = (table, element) => {
 
-      <Body
-        {...this.state}
-        resizeActivity={this.resizeActivity}
-      />
+    let newTable = table;
+    const index = newTable.indexOf(element);
+    if (index > -1 && table.length > 1 ) {
+      newTable.splice(index, 1);
+    } else if (index === -1) {
+      newTable.push(element);
+    }
+    return newTable;
+  }
+
+  toogleCategories = (table, element) => {
+    const newSelectedCategories = this.tooggleFilter(table, element);
+    this.setState({
+      selectedCategories: newSelectedCategories
+    });
+  }
+
+  toogleLocalizations = (table, element) => {
+    this.setState({
+      selectedLocalizations: this.tooggleFilter(table, element)
+    });
+  }
+
+  tooglePersones = (table, element) => {
+    this.setState({
+      selectedPersones: this.tooggleFilter(table, element)
+    })
+  }
+
+  render() {
+    const { selectedCategory, selectedCategories, uniqueCategories, selectedLocalization, selectedLocalizations, uniqueLocalization, uniquePersones, selectedPersones } = this.state;
+
+    //Smart grey-out empty tags
+    const categoriesInSelectedLocalization = this.state.activities.filter(activity => selectedLocalizations.indexOf(activity.localization) > -1  && selectedPersones.indexOf(activity.person) > -1);
+    const uniqueCategoriesInSelectedLocalization = uniqBy(categoriesInSelectedLocalization, 'category').map(activity => activity.category);
+    const personesInSelectedLocalization = this.state.activities.filter(activity => selectedLocalizations.indexOf(activity.localization) > -1 && selectedCategories.indexOf(activity.category) > -1);
+    const uniquePersonesInSelectedLocalization = uniqBy(personesInSelectedLocalization, 'person').map(activity => activity.person);
+
+    const localizationForSelections = this.state.activities.filter(activity => selectedCategories.indexOf(activity.category) > -1 && selectedPersones.indexOf(activity.person) > -1);
+    const uniqueLocalizationForSelections = uniqBy(localizationForSelections, 'localization').map(activity => activity.localization);
+
+    const categoryTags = uniqueCategories.map((category, index) =>
+      <Tag
+        color={uniqueCategoriesInSelectedLocalization.indexOf(category) === -1 ? 'grey' : TAG_COLORS[index]}
+        checked={ selectedCategories.indexOf(category) > -1 ? true : false }
+        key={category}
+        onClick={() => this.toogleCategories(selectedCategories, category)} >
+        {category}
+      </Tag>
+    );
+
+    const localizationButtons = uniqueLocalization.map(localization =>
+      <Tag
+        color={uniqueLocalizationForSelections.indexOf(localization) === -1 ? 'grey' : '#2db7f5'}
+        checked={ selectedLocalizations.indexOf(localization) > -1 ? true : false }
+        key={localization} onClick={() => this.toogleLocalizations(selectedLocalizations, localization)} >
+        {localization}
+      </Tag>
+    );
+
+    const personesButtons = uniquePersones.map(person =>
+      <Tag
+        color={uniquePersonesInSelectedLocalization.indexOf(person) === -1 ? 'grey' : '#108ee9'}
+        checked={ selectedPersones.indexOf(person) > -1 ? true : false }
+        key={person} onClick={() => this.tooglePersones(selectedPersones, person)} >
+        {person}
+      </Tag>
+    );
+
+    return (
+        <Calendar>
+          {this.displayModeElements()}
+
+          <div>
+            <h6 style={{marginRight: '8px', display: 'inline'}}>Miejsca zajęć:</h6>
+            {localizationButtons}
+          </div>
+
+          <div>
+            <h6 style={{marginRight: '8px', display: 'inline'}}>Kategorie:</h6>
+            {categoryTags}
+          </div>
+
+          <div>
+            <h6 style={{marginRight: '8px', display: 'inline'}}>Prowadzący:</h6>
+            {personesButtons}
+          </div>
 
 
-    </Calendar>
+          <Header {...this.state} />
+
+          <Body
+            {...this.state}
+            resizeActivity={this.resizeActivity}
+          />
+        </Calendar>
   );
   }
 }

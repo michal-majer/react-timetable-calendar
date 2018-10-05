@@ -7,6 +7,7 @@ const CellWeek = styled.div`
   border-top: 1px dashed rgb(220,220,220, 0.8);
   padding: 0 2%;
   grid-row: span ${props => props.rowSpan || 1};
+  grid-column: span ${props => props.gridColumn || 1};
   margin-top: 1px;
   position: relative;
   transition: 0.3s ease;
@@ -20,18 +21,11 @@ const CellTime = styled.div`
   justify-content: flex-end;
   margin-top: -7.5px;
   padding: 0 5%;
+  grid-column: span ${props => props.gridColumn || 1};
 `;
 
-const onDragOver = (ev) => {
-  ev.preventDefault();
-}
 
-const onDrop = (ev, cat) => {
-  let activity = ev.dataTransfer.getData("activity");
-  console.log(activity);
-}
-
-const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities, resizeActivity}) => {
+const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, activities, resizeActivity, mode, selectedCategory, selectedCategories, selectedLocalization, subHeader, selectedLocalizations, selectedPersones}) => {
   let cells = [];
   let spanCordinates = [];
   const start = startOfWeek(selectedDate, {weekStartsOn});
@@ -42,13 +36,24 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
   for (let [index, dayOfWeek] of headerDays.entries()) {
     for (let activity of activities) {
       if (isSameDay(activity.date, dayOfWeek)) {
-        activitiesInThisWeek.push(activity)
+        if(selectedLocalizations.indexOf(activity.localization) > -1 && selectedCategories.indexOf(activity.category) > -1 && selectedPersones.indexOf(activity.person) > -1) {
+          activitiesInThisWeek.push(activity);
+        }
+        // if(!selectedCategory && !selectedLocalization) {
+        //   activitiesInThisWeek.push(activity)
+        // } else if(selectedCategory &&  activity.category === selectedCategory && selectedLocalizations.indexOf(activity.localization > - 1)) {
+        //   activitiesInThisWeek.push(activity)
+        // } else if(selectedCategory &&  activity.category === selectedCategory) {
+        //   activitiesInThisWeek.push(activity)
+        // } else if(  !selectedCategory && selectedLocalizations.indexOf(activity.localization > - 1)) {
+        //   activitiesInThisWeek.push(activity)
+        // }
       }
     }
   }
 
   for (let [index, dayOfWeek] of headerDays.entries()) {
-      if (index > displayDays) { break; }
+      // if (index > displayDays) { break; }
       for (let activity of activitiesInThisWeek) {
         if (isSameDay(activity.date, dayOfWeek)) {
           //Time calculate
@@ -98,7 +103,8 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
           activity.css.height--;
 
           //Set column
-          activity.y = index;
+          activity.y = index * selectedLocalizations.length;
+          activity.y += selectedLocalizations.indexOf(activity.localization);
 
           //Recalculate span (size of ActivityCard on grid)
           for(let i = activity.startX; i < activity.endX - 1; i++) {
@@ -109,13 +115,15 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
   }
 
   for (let index = 0; index < timeArray.length; index++) {
+
     cells.push(
-      <CellTime key={index}>
+      <CellTime gridColumn={selectedLocalizations.length} key={index}>
         {timeArray[index]}
       </CellTime>
     );
 
-    for (let i = 0; i < displayDays; i++) {
+
+    for (let i = 0; i < (displayDays * selectedLocalizations.length); i++) {
         const checkActivity = activitiesInThisWeek.filter(activity => activity.startX === index && i === activity.y );
 
         //Reduce - more than one activity in one time
@@ -127,7 +135,7 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
 
           cells.push(
             <CellWeek key={`activity${index}${i}`} rowSpan={span}>
-              { checkActivity.map((activity, index) => <ActivityCard key={index} activity={activity} resizeActivity={resizeActivity} />)}
+              { checkActivity.map((activity, index) => <ActivityCard key={index} mode={mode} activity={activity} resizeActivity={resizeActivity} />)}
             </CellWeek>
           );
           span = 0;
@@ -135,9 +143,7 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
           const checkRowSpan = spanCordinates.filter(obj => obj.x === index && obj.y === i );
           if (checkRowSpan.length !== 1) {
             cells.push(
-              <CellWeek key={`activity${index}${i}`}
-                onDrop={(e)=>onDrop(e, "complete")}
-                onDragOver={(e) => onDragOver(e)} />
+              <CellWeek key={`activity${index}${i}`} />
             )
           }
         }
