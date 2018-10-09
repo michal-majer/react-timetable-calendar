@@ -127,21 +127,28 @@ const generateWeekBody = ({selectedDate, weekStartsOn, timeArray, displayDays, a
 
 
     for (let i = 0; i < (displayDays * selectedLocalizations.length); i++) {
-        const checkActivity = activitiesInThisWeek.filter(activity => activity.startX === index && i === activity.y );
-
-        //Reduce - more than one activity in one time
-        if(checkActivity.length > 0) {
-          let span = checkActivity[0].span;
+        let checkActivity = activitiesInThisWeek.filter(activity => activity.startX === index && i === activity.y );
+        let intersect = false;
+        if(checkActivity.length > 0) { //More than one activity in one hour
+          let span = checkActivity.reduce((total, current) => { return total + current.span }, 0);
           if(checkActivity.length > 1) {
-            span += checkActivity[1].span;
-          }
+              //No intersect
+              span--;
 
+              //intersect - make one activity card for all activities
+              span++;
+              span = checkActivity[0].span;
+              checkActivity = [checkActivity[0]];
+              intersect = true;
+              console.log(checkActivity);
+          }
           cells.push(
             <CellWeek key={`activity${index}${i}`} rowSpan={span}>
               { checkActivity.map((activity, index) => <ActivityCard uniqueCategories={uniqueCategories} key={index} mode={mode} activity={activity} resizeActivity={resizeActivity} />)}
             </CellWeek>
           );
-          span = 0;
+
+
         } else {
           const checkRowSpan = spanCordinates.filter(obj => obj.x === index && obj.y === i );
           if (checkRowSpan.length !== 1) {
